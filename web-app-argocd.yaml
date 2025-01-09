@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-app
+  namespace: argocd   # Namespace where the ArgoCD application resides
+spec:
+  destination:
+    namespace: default   # Target namespace where your application will be deployed
+    server: https://kubernetes.default.svc  # Replace with your Kubernetes API server URL
+  project: default   # ArgoCD project to associate the application with
+
+  source:
+    repoURL: https://github.com/Hayder-alobaidi/P1-kubernetes_manifest.git  # URL of your Git repository
+    path: mainfest   # Path within the repository where your application manifests are located
+    targetRevision: HEAD   # Target revision (branch, tag, commit) to track in the repository
+
+  syncPolicy:
+    automated:
+      prune: true   # Automatically delete resources not present in Git repository
+      selfHeal: true   # Reconcile resources to the desired state
+      allowEmpty: false   # Prevent sync even if the manifests are empty

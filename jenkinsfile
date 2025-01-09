@@ -1,0 +1,37 @@
+node {
+    def app
+
+    stage('Clone repository') {
+        checkout scm
+    }
+
+    stage('Update GIT') {
+        script {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+
+                    // Set user config for Git
+                    gitConfig("user.email", "hydar426@gmail.com")
+                    gitConfig("user.name", "Hayder-alobaidi")
+
+                    // Update deployment.yaml file
+                    def dockerTag = "${DOCKERTAG}"
+                    def deploymentFile = readFile 'mainfest/deployment.yaml'
+                    deploymentFile = deploymentFile.replaceAll(/hayder89\/web-app:.*/, "hayder89/web-app:${dockerTag}")
+                    writeFile file: 'mainfest/deployment.yaml', text: deploymentFile
+
+                    // Git operations: Add changes, commit, and push securely using the environment variables
+                    sh """
+                        git add .
+                        git commit -m 'Done by Jenkins Job update manifest: ${env.BUILD_NUMBER}'
+                        git push https://${GITHUB_TOKEN}@github.com/Hayder-alobaidi/P1-kubernetes_manifest.git HEAD:main
+                    """
+                }
+            }
+        }
+    }
+}
+
+def gitConfig(name, value) {
+    sh "git config ${name} \"${value}\""
+}
